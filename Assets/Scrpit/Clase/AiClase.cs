@@ -76,10 +76,17 @@ public class AiClase : MonoBehaviour
     void Patrol()
     {
 
+        Vector3 randomPosition;
+        if(RandomPoint(transform.position, patrolRange, out randomPosition))
+        {
+            agent.destination = randomPosition;
+        }
+
         if(Vector3.Distance(transform.position, player.position) < visionRange)
         {
             currentState = State.Chasing;
         }
+        currentState = State.Travelling;
     }
 
     bool RandomPoint(Vector3 center, float range, out Vector3 point)
@@ -97,7 +104,16 @@ public class AiClase : MonoBehaviour
     }
     void Travel()
     {
+        if(agent.remainingDistance <= 0.2)
+        {
+            currentState = State.Patrolling;
+        }
 
+
+        if(Vector3.Distance(transform.position, player.position) < visionRange)
+        {
+            currentState = State.Chasing;
+        }
     }
     void Chase()
     {
