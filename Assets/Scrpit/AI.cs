@@ -6,16 +6,16 @@ using UnityEngine.AI;
 public class AI : MonoBehaviour
 {
 
-    //hacer un estado de waiting en este estado es cuando llege a un punto se tiene que estar alli paradao durante unos segundos y luego pasar al siguiente y repetir
-    //Que coga los puntos por orden
+    //hacer un estado de waiting despues de que nos persiga
+   
     //estado de atacando si se acerca mucho al jugador que salga un debug donde salga que le ha atacado y que cuando sale que se vuelva al de perseguir
 
-    //Cambiar que en vez de que lo haga de una manera ranmdom lo haga en orden segun el grupo y cuando llege al ultimo que vuelva al primero y cuando llegue al punto hacer una funcion que sea que tenga que estar en el llugar durante  5 segundo y si durante ese tiempo pasa el jugador que lo persigua
+   
     enum State
     {
         Patrolling,
         Chasing,
-        Ataking,
+        Attacking,
     }
 
 
@@ -25,11 +25,12 @@ public class AI : MonoBehaviour
 
     public Transform[] destinationPoints;
     public float visionRange;
+    public float hitRange;
     public Transform player;
 
     public float waitTime;
     public float startWaitTime;
-    // Start is called before the first frame update
+
 
     void Awake()
     {
@@ -43,6 +44,8 @@ public class AI : MonoBehaviour
         waitTime = startWaitTime;
 
         destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
+
+
     }
 
     void Update()
@@ -61,7 +64,7 @@ public class AI : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
+
     void Patrol()
     {
         agent.destination = destinationPoints[destinationIndex].position;
@@ -70,9 +73,8 @@ public class AI : MonoBehaviour
         {
             if(waitTime <= 0)
             {
-                //destinationIndex = Random.Range(0, destinationPoints.Length);
+
                 destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-                //(_currentWaypointIndex + 1) % waypoints.Length;
                 waitTime =startWaitTime;
             }
             else
@@ -86,7 +88,7 @@ public class AI : MonoBehaviour
             currentState = State.Chasing;
         }
     }
-
+// > cuando no este en el rango                < cuando este en el area
     void Chase()
     {
         agent.destination = player.position;
@@ -96,7 +98,17 @@ public class AI : MonoBehaviour
             currentState = State.Patrolling;
         }
 
+        if(Vector3.Distance(transform.position, player.position) < hitRange)
+        {
+            Debug.Log("PIto");
+            
+        }
     }
+
+    /*void Ataking()
+    {
+        agent.destination = player.position;
+    }*/
 
     void OnDrawGizmos() 
     {
@@ -106,7 +118,10 @@ public class AI : MonoBehaviour
             Gizmos.DrawWireSphere(point.position, 1);
         }
 
-        Gizmos.color = Color.red;
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, visionRange);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, hitRange);
     }
 }
