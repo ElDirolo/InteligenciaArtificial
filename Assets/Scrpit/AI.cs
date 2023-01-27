@@ -5,12 +5,8 @@ using UnityEngine.AI;
 
 public class AI : MonoBehaviour
 {
-
-    //hacer un estado de waiting despues de que nos persiga
-   
-    //estado de atacando si se acerca mucho al jugador que salga un debug donde salga que le ha atacado y que cuando sale que se vuelva al de perseguir
-
-   
+// > cuando no este en el rango                < cuando este en el area
+   //Intentar que se quede quieto despues de perseguir
     enum State
     {
         Patrolling,
@@ -58,6 +54,9 @@ public class AI : MonoBehaviour
             case State.Chasing:
                 Chase();
             break;
+            case State.Attacking:
+                Attack();
+            break;
             default:
                 Chase();
             break;
@@ -73,7 +72,6 @@ public class AI : MonoBehaviour
         {
             if(waitTime <= 0)
             {
-
                 destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
                 waitTime =startWaitTime;
             }
@@ -88,7 +86,7 @@ public class AI : MonoBehaviour
             currentState = State.Chasing;
         }
     }
-// > cuando no este en el rango                < cuando este en el area
+
     void Chase()
     {
         agent.destination = player.position;
@@ -100,15 +98,23 @@ public class AI : MonoBehaviour
 
         if(Vector3.Distance(transform.position, player.position) < hitRange)
         {
-            Debug.Log("PIto");
-            
+            currentState = State.Attacking;
         }
     }
 
-    /*void Ataking()
+    void Attack()
     {
         agent.destination = player.position;
-    }*/
+        
+        Debug.Log("Patada en la boca");
+        
+        
+        if(Vector3.Distance(transform.position, player.position) > hitRange)
+        {
+            currentState = State.Chasing;
+        }
+        
+    }
 
     void OnDrawGizmos() 
     {
@@ -117,10 +123,12 @@ public class AI : MonoBehaviour
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(point.position, 1);
         }
-
+        
+        //Rango de persecucion
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, visionRange);
-
+        
+        //Rango de ataque
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, hitRange);
     }

@@ -66964,6 +66964,7 @@ MonoBehaviour:
   - {fileID: 1667180990}
   - {fileID: 297806097}
   visionRange: 5
+  hitRange: 2
   player: {fileID: 1967282550}
   waitTime: 0
   startWaitTime: 3
