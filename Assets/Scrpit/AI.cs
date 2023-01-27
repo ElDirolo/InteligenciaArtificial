@@ -12,6 +12,7 @@ public class AI : MonoBehaviour
         Patrolling,
         Waiting,
         Chasing,
+        WaitingChase,
         Attacking,
     }
 
@@ -25,9 +26,12 @@ public class AI : MonoBehaviour
     public float hitRange;
     public Transform player;
 
-    public float waitTime;
     public float startWaitTime;
-
+    private float waitTime;
+    
+    public float startWaitChaseTime;
+    private float waitChaseTime;
+    
 
     void Awake()
     {
@@ -38,11 +42,11 @@ public class AI : MonoBehaviour
     {
         currentState = State.Patrolling;
 
+        destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
+        
         waitTime = startWaitTime;
 
-        destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-
-
+        waitChaseTime = startWaitChaseTime;
     }
 
     void Update()
@@ -57,6 +61,9 @@ public class AI : MonoBehaviour
             break;
             case State.Chasing:
                 Chase();
+            break;
+            case State.WaitingChase:
+                WaitChaise();
             break;
             case State.Attacking:
                 Attack();
@@ -75,15 +82,6 @@ public class AI : MonoBehaviour
         if(Vector3.Distance(transform.position, destinationPoints[destinationIndex].position) < 1)
         {
             currentState = State.Waiting;
-            /*if(waitTime <= 0)
-            {
-                destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-                waitTime =startWaitTime;
-            }
-            else
-            {
-                waitTime -= Time.deltaTime;
-            }*/
         }
         
         if(Vector3.Distance(transform.position, player.position) < visionRange)
@@ -98,7 +96,7 @@ public class AI : MonoBehaviour
         if(waitTime <= 0)
         {
             destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-            waitTime =startWaitTime;
+            waitTime = startWaitTime;
             currentState = State.Patrolling;
         }
         else
@@ -110,13 +108,32 @@ public class AI : MonoBehaviour
             currentState = State.Chasing;
         }
     }
+
+    void WaitChaise()
+    {
+        agent.destination = transform.position;
+        if(waitChaseTime <= 0)
+        {
+            waitChaseTime = startWaitChaseTime;
+            currentState = State.Patrolling;
+        }
+        else
+        {
+            waitChaseTime -= Time.deltaTime;
+        }
+        if(Vector3.Distance(transform.position, player.position) < visionRange)
+        {
+            currentState = State.Chasing;
+        }
+    }
+
     void Chase()
     {
         agent.destination = player.position;
         
         if(Vector3.Distance(transform.position, player.position) > visionRange)
         {
-            currentState = State.Patrolling;
+            currentState = State.WaitingChase;
         }
 
         if(Vector3.Distance(transform.position, player.position) < hitRange)
