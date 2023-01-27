@@ -10,6 +10,7 @@ public class AI : MonoBehaviour
     enum State
     {
         Patrolling,
+        Waiting,
         Chasing,
         Attacking,
     }
@@ -51,6 +52,9 @@ public class AI : MonoBehaviour
             case State.Patrolling:
                 Patrol();
             break;
+            case State.Waiting:
+                Wait();
+            break;
             case State.Chasing:
                 Chase();
             break;
@@ -70,7 +74,8 @@ public class AI : MonoBehaviour
 
         if(Vector3.Distance(transform.position, destinationPoints[destinationIndex].position) < 1)
         {
-            if(waitTime <= 0)
+            currentState = State.Waiting;
+            /*if(waitTime <= 0)
             {
                 destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
                 waitTime =startWaitTime;
@@ -78,7 +83,7 @@ public class AI : MonoBehaviour
             else
             {
                 waitTime -= Time.deltaTime;
-            }
+            }*/
         }
         
         if(Vector3.Distance(transform.position, player.position) < visionRange)
@@ -87,6 +92,24 @@ public class AI : MonoBehaviour
         }
     }
 
+    void Wait()
+    {
+        agent.destination = destinationPoints[destinationIndex].position;
+        if(waitTime <= 0)
+        {
+            destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
+            waitTime =startWaitTime;
+            currentState = State.Patrolling;
+        }
+        else
+        {
+            waitTime -= Time.deltaTime;
+        }
+        if(Vector3.Distance(transform.position, player.position) < visionRange)
+        {
+            currentState = State.Chasing;
+        }
+    }
     void Chase()
     {
         agent.destination = player.position;
