@@ -5,33 +5,26 @@ using UnityEngine.AI;
 
 public class AiClase : MonoBehaviour
 {
-// > cuando no este en el rango                < cuando este en el area
-   //Intentar que se quede quieto despues de perseguir
     enum State
     {
         Patrolling,
-        Waiting,
         Chasing,
-        WaitingChase,
-        Attacking,
+        Waiting,
+        Ataking,
+        Travelling,
     }
 
 
     State currentState;
     NavMeshAgent agent;
-    public int destinationIndex = 0;
+    int destinationIndex = 0;
 
     public Transform[] destinationPoints;
     public float visionRange;
-    public float hitRange;
     public Transform player;
 
-    public float startWaitTime;
-    private float waitTime;
-    
-    public float startWaitChaseTime;
-    private float waitChaseTime;
-    
+    [SerializeField] float patrolRange = 10f;
+
 
     void Awake()
     {
@@ -42,11 +35,7 @@ public class AiClase : MonoBehaviour
     {
         currentState = State.Patrolling;
 
-        destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-        
-        waitTime = startWaitTime;
-
-        waitChaseTime = startWaitChaseTime;
+        destinationIndex = Random.Range(0, destinationPoints.Length); 
     }
 
     void Update()
@@ -56,17 +45,11 @@ public class AiClase : MonoBehaviour
             case State.Patrolling:
                 Patrol();
             break;
-            case State.Waiting:
-                Wait();
-            break;
             case State.Chasing:
                 Chase();
             break;
-            case State.WaitingChase:
-                WaitChaise();
-            break;
-            case State.Attacking:
-                Attack();
+            case State.Travelling:
+                Travel();
             break;
             default:
                 Chase();
@@ -74,86 +57,57 @@ public class AiClase : MonoBehaviour
         }
     }
 
-
-    void Patrol()
+    // Update is called once per frame
+    /*void Patrol()
     {
         agent.destination = destinationPoints[destinationIndex].position;
 
         if(Vector3.Distance(transform.position, destinationPoints[destinationIndex].position) < 1)
         {
-            currentState = State.Waiting;
+            destinationIndex = Random.Range(0, destinationPoints.Length);
         }
         
         if(Vector3.Distance(transform.position, player.position) < visionRange)
         {
             currentState = State.Chasing;
         }
-    }
+    }*/
 
-    void Wait()
+    void Patrol()
     {
-        agent.destination = destinationPoints[destinationIndex].position;
-        if(waitTime <= 0)
-        {
-            destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
-            waitTime = startWaitTime;
-            currentState = State.Patrolling;
-        }
-        else
-        {
-            waitTime -= Time.deltaTime;
-        }
+
         if(Vector3.Distance(transform.position, player.position) < visionRange)
         {
             currentState = State.Chasing;
         }
     }
 
-    void WaitChaise()
+    bool RandomPoint(Vector3 center, float range, out Vector3 point)
     {
-        agent.destination = transform.position;
-        if(waitChaseTime <= 0)
+        Vector3 randomPoint = center + Random.insideUnitSphere * range;
+        NavMeshHit hit;
+        if(NavMesh.SamplePosition(randomPoint, out hit, 4, NavMesh.AllAreas))
         {
-            waitChaseTime = startWaitChaseTime;
-            currentState = State.Patrolling;
+            point = hit.position;
+            return true;
         }
-        else
-        {
-            waitChaseTime -= Time.deltaTime;
-        }
-        if(Vector3.Distance(transform.position, player.position) < visionRange)
-        {
-            currentState = State.Chasing;
-        }
+        point = Vector3.zero;
+        return false;
+    
     }
+    void Travel()
+    {
 
+    }
     void Chase()
     {
         agent.destination = player.position;
         
         if(Vector3.Distance(transform.position, player.position) > visionRange)
         {
-            currentState = State.WaitingChase;
+            currentState = State.Patrolling;
         }
 
-        if(Vector3.Distance(transform.position, player.position) < hitRange)
-        {
-            currentState = State.Attacking;
-        }
-    }
-
-    void Attack()
-    {
-        agent.destination = player.position;
-        
-        Debug.Log("Patada en la boca");
-        
-        
-        if(Vector3.Distance(transform.position, player.position) > hitRange)
-        {
-            currentState = State.Chasing;
-        }
-        
     }
 
     void OnDrawGizmos() 
@@ -163,13 +117,8 @@ public class AiClase : MonoBehaviour
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(point.position, 1);
         }
-        
-        //Rango de persecucion
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, visionRange);
-        
-        //Rango de ataque
+
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, hitRange);
+        Gizmos.DrawWireSphere(transform.position, visionRange);
     }
 }
