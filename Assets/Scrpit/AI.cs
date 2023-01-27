@@ -6,7 +6,7 @@ using UnityEngine.AI;
 public class AI : MonoBehaviour
 {
 
-    //hacer un estado de waiting en este estado es cuando llege a un punto se tiene que estar alli paradao durante unos segundos y luego pasar l siguiente y repetir
+    //hacer un estado de waiting en este estado es cuando llege a un punto se tiene que estar alli paradao durante unos segundos y luego pasar al siguiente y repetir
     //Que coga los puntos por orden
     //estado de atacando si se acerca mucho al jugador que salga un debug donde salga que le ha atacado y que cuando sale que se vuelva al de perseguir
 
@@ -15,18 +15,20 @@ public class AI : MonoBehaviour
     {
         Patrolling,
         Chasing,
-        Waiting,
         Ataking,
     }
 
 
     State currentState;
     NavMeshAgent agent;
-    int destinationIndex = 0;
+    public int destinationIndex = 0;
 
     public Transform[] destinationPoints;
     public float visionRange;
     public Transform player;
+
+    public float waitTime;
+    public float startWaitTime;
     // Start is called before the first frame update
 
     void Awake()
@@ -38,7 +40,9 @@ public class AI : MonoBehaviour
     {
         currentState = State.Patrolling;
 
-        destinationIndex = Random.Range(0, destinationPoints.Length); 
+        waitTime = startWaitTime;
+
+        destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
     }
 
     void Update()
@@ -64,7 +68,17 @@ public class AI : MonoBehaviour
 
         if(Vector3.Distance(transform.position, destinationPoints[destinationIndex].position) < 1)
         {
-            destinationIndex = Random.Range(0, destinationPoints.Length);
+            if(waitTime <= 0)
+            {
+                //destinationIndex = Random.Range(0, destinationPoints.Length);
+                destinationIndex = (destinationIndex + 1) % destinationPoints.Length;
+                //(_currentWaypointIndex + 1) % waypoints.Length;
+                waitTime =startWaitTime;
+            }
+            else
+            {
+                waitTime -= Time.deltaTime;
+            }
         }
         
         if(Vector3.Distance(transform.position, player.position) < visionRange)
